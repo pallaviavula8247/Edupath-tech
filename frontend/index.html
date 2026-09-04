@@ -1,145 +1,683 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>EDUPath — find your route from where you are to where you're going</title>
-<meta name="description" content="Enter your goal and current standard to get a personalised roadmap, scholarships, and nearby colleges." />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>EDUPath — Intelligent Education Guidance</title>
+
+  <meta
+    name="description"
+    content="EDUPath helps students discover career roadmaps, scholarships and colleges."
+  />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
 
-<div class="grain" aria-hidden="true"></div>
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
 
-<header class="site-header">
-  <div class="wrap header-inner">
-    <a class="brand" href="#top">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 40 40" width="28" height="28">
-          <path d="M4 30 C 12 10, 28 10, 36 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-          <circle cx="4" cy="30" r="3" fill="currentColor"/>
-          <circle cx="36" cy="30" r="3" fill="currentColor"/>
-          <circle cx="20" cy="14.4" r="2.2" fill="currentColor"/>
-        </svg>
-      </span>
-      EDUPath
-    </a>
-    <nav class="header-nav">
-      <a href="#planner">Plan your route</a>
-      <a href="#about">About</a>
-    </nav>
-  </div>
-</header>
+  <header class="site-header">
 
-<main id="top">
+    <div class="wrap header-inner">
 
-  <section class="hero wrap">
-    <p class="hero-eyebrow">Class 8 through postgraduate — one place to plot the route</p>
-    <h1 class="hero-title">Tell us where you want to<br class="hide-narrow"> end up. We'll draw the path there.</h1>
-    <p class="hero-sub">
-      Pick a goal and your current standard. EDUPath lines up the steps, the scholarships worth
-      applying for, and the colleges nearby — so the next decision is never a guess.
-    </p>
-  </section>
+      <!-- Brand -->
+      <a class="brand" href="#top">
 
-  <section id="planner" class="planner wrap">
-    <form id="planner-form" class="planner-card" novalidate>
-      <div class="field">
-        <label for="goal">What do you want to become?</label>
-        <select id="goal" name="goal" required>
-          <option value="" disabled selected>Choose a field</option>
-        </select>
+        <span class="brand-mark" aria-hidden="true">
+
+          <svg
+            viewBox="0 0 48 48"
+            width="40"
+            height="40"
+            fill="none"
+          >
+            <path
+              d="M5 17L24 7L43 17L24 27L5 17Z"
+              fill="currentColor"
+            />
+
+            <path
+              d="M12 21V32C18 37 30 37 36 32V21"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <path
+              d="M43 17V29"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+          </svg>
+
+        </span>
+
+        <span>
+          EDU<span style="color:#229cff;">Path</span>
+        </span>
+
+      </a>
+
+
+      <!-- Navigation -->
+
+      <nav class="header-nav">
+
+        <a href="#top">
+          Home
+        </a>
+
+        <a href="#planner">
+          Roadmap
+        </a>
+
+        <a href="#results">
+          Scholarships
+        </a>
+
+        <a href="#results">
+          Colleges
+        </a>
+
+        <a href="#about">
+          About
+        </a>
+
+      </nav>
+
+    </div>
+
+  </header>
+
+
+  <main id="top">
+
+
+    <!-- =====================================================
+         HERO
+         ===================================================== -->
+
+    <section class="hero wrap">
+
+      <p class="hero-eyebrow">
+        AI-POWERED EDUCATION PLANNER
+      </p>
+
+
+      <h1 class="hero-title">
+
+        Plan Your Future
+        <br>
+
+        with
+        <span style="color:#229cff;">
+          Intelligent
+        </span>
+
+        <br>
+
+        <span style="color:#229cff;">
+          Guidance.
+        </span>
+
+      </h1>
+
+
+      <p class="hero-sub">
+
+        EDUPath helps students discover the right career roadmap,
+        scholarships, and colleges based on where they are today.
+
+      </p>
+
+
+      <!-- Hero buttons -->
+
+      <div
+        style="
+          display:flex;
+          gap:16px;
+          margin-top:30px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <a
+          href="#planner"
+          class="primary-btn"
+          style="
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            text-decoration:none;
+            padding:15px 25px;
+          "
+        >
+          Start Planning Now
+          <span style="margin-left:12px;font-size:20px;">
+            →
+          </span>
+        </a>
+
+
+        <a
+          href="#results"
+          class="ghost-btn"
+          style="
+            text-decoration:none;
+            padding:14px 24px;
+          "
+        >
+          Explore Colleges
+        </a>
+
       </div>
 
-      <div class="field">
-        <label for="standard">Where are you right now?</label>
-        <select id="standard" name="standard" required>
-          <option value="" disabled selected>Choose your current standard</option>
-        </select>
+
+      <!-- Hero feature indicators -->
+
+      <div
+        style="
+          display:flex;
+          gap:28px;
+          margin-top:34px;
+          flex-wrap:wrap;
+          color:#a9b8ce;
+          font-size:13px;
+        "
+      >
+
+        <span>
+          <strong style="color:#229cff;">✦</strong>
+          AI Powered
+        </span>
+
+        <span>
+          <strong style="color:#35e58a;">✓</strong>
+          Accurate
+        </span>
+
+        <span>
+          <strong style="color:#9b5cff;">◆</strong>
+          Trusted
+        </span>
+
+        <span>
+          <strong style="color:#ffbd32;">🔒</strong>
+          Secure
+        </span>
+
       </div>
 
-      <div class="field">
-        <label for="state">State <span class="optional">(optional, narrows college results)</span></label>
-        <input type="text" id="state" name="state" placeholder="e.g. Andhra Pradesh" autocomplete="off" />
-      </div>
+    </section>
 
-      <div class="field location-field">
-        <button type="button" id="use-location" class="ghost-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-          Use my location for nearby colleges
+
+
+    <!-- =====================================================
+         EDUCATION PLANNER
+         ===================================================== -->
+
+    <section
+      id="planner"
+      class="planner wrap"
+    >
+
+      <form
+        id="planner-form"
+        class="planner-card"
+        novalidate
+      >
+
+        <!-- Planner heading -->
+
+        <div
+          style="
+            grid-column:1/-1;
+            margin-bottom:5px;
+          "
+        >
+
+          <p
+            style="
+              margin:0 0 6px;
+              color:#55b7ff;
+              font-size:12px;
+              font-weight:700;
+              letter-spacing:.08em;
+              text-transform:uppercase;
+            "
+          >
+            YOUR EDUCATION ROADMAP
+          </p>
+
+          <h2
+            style="
+              font-size:28px;
+              margin:0;
+            "
+          >
+            Tell us about your journey
+          </h2>
+
+          <p
+            style="
+              margin:7px 0 0;
+              color:#71839d;
+              font-size:14px;
+            "
+          >
+            We'll create a personalized path based on your goals.
+          </p>
+
+        </div>
+
+
+        <!-- Career goal -->
+
+        <div class="field">
+
+          <label for="goal">
+            What do you want to become?
+          </label>
+
+          <select
+            id="goal"
+            name="goal"
+            required
+          >
+
+            <option
+              value=""
+              disabled
+              selected
+            >
+              Choose a field
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- Current standard -->
+
+        <div class="field">
+
+          <label for="standard">
+            Where are you right now?
+          </label>
+
+          <select
+            id="standard"
+            name="standard"
+            required
+          >
+
+            <option
+              value=""
+              disabled
+              selected
+            >
+              Choose your current standard
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- State -->
+
+        <div class="field">
+
+          <label for="state">
+
+            State
+
+            <span class="optional">
+              (optional)
+            </span>
+
+          </label>
+
+          <input
+            type="text"
+            id="state"
+            name="state"
+            placeholder="e.g. Andhra Pradesh"
+            autocomplete="off"
+          />
+
+        </div>
+
+
+        <!-- Location -->
+
+        <div class="field location-field">
+
+          <button
+            type="button"
+            id="use-location"
+            class="ghost-btn"
+          >
+
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+
+              <circle
+                cx="12"
+                cy="12"
+                r="3"
+              />
+
+              <path d="M12 2v3" />
+              <path d="M12 19v3" />
+              <path d="M2 12h3" />
+              <path d="M19 12h3" />
+
+            </svg>
+
+            Use my location
+
+          </button>
+
+
+          <span
+            id="location-status"
+            class="location-status"
+            role="status"
+            aria-live="polite"
+          ></span>
+
+        </div>
+
+
+        <!-- Submit -->
+
+        <button
+          type="submit"
+          class="primary-btn"
+        >
+
+          Generate My Roadmap
+
+          <span style="margin-left:8px;">
+            →
+          </span>
+
         </button>
-        <span id="location-status" class="location-status" role="status" aria-live="polite"></span>
+
+
+        <p
+          id="form-error"
+          class="form-error"
+          role="alert"
+          aria-live="assertive"
+        ></p>
+
+      </form>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         LOADING
+         ===================================================== -->
+
+    <section
+      class="loading wrap"
+      id="loading"
+      hidden
+    >
+
+      <div
+        class="spinner"
+        aria-hidden="true"
+      ></div>
+
+      <p>
+        Building your personalized education roadmap...
+      </p>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         RESULTS
+         ===================================================== -->
+
+    <section
+      id="results"
+      class="results wrap"
+      hidden
+    >
+
+      <!-- Results header -->
+
+      <div class="results-header">
+
+        <span
+          class="results-icon"
+          id="results-icon"
+          aria-hidden="true"
+        >
+          🎓
+        </span>
+
+        <div>
+
+          <h2 id="results-title">
+            Your Education Roadmap
+          </h2>
+
+          <p id="results-sub"></p>
+
+        </div>
+
       </div>
 
-      <button type="submit" class="primary-btn">
-        Show my roadmap
-      </button>
-      <p id="form-error" class="form-error" role="alert" aria-live="assertive"></p>
-    </form>
-  </section>
 
-  <section id="results" class="results wrap" hidden>
+      <!-- Results grid -->
 
-    <div class="results-header">
-      <span class="results-icon" id="results-icon" aria-hidden="true">🎯</span>
-      <div>
-        <h2 id="results-title">Your path</h2>
-        <p id="results-sub"></p>
+      <div class="results-grid">
+
+
+        <!-- =================================================
+             ROADMAP
+             ================================================= -->
+
+        <div class="panel roadmap-panel">
+
+          <h3>
+            Your roadmap from here
+          </h3>
+
+          <ol
+            id="roadmap-list"
+            class="roadmap-list"
+          ></ol>
+
+        </div>
+
+
+
+        <!-- =================================================
+             SCHOLARSHIPS
+             ================================================= -->
+
+        <div class="panel">
+
+          <h3>
+            Scholarships worth applying for
+          </h3>
+
+          <div
+            id="scholarship-list"
+            class="scholarship-list"
+          ></div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             COLLEGES
+             ================================================= -->
+
+        <div class="panel">
+
+          <h3>
+            Recommended colleges
+          </h3>
+
+          <div
+            id="college-list"
+            class="college-list"
+          ></div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             NEARBY COLLEGES
+             ================================================= -->
+
+        <div
+          class="panel"
+          id="nearby-panel"
+          hidden
+        >
+
+          <h3>
+            Colleges near you
+          </h3>
+
+          <div
+            id="nearby-list"
+            class="college-list"
+          ></div>
+
+        </div>
+
+
       </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         ABOUT
+         ===================================================== -->
+
+    <section
+      id="about"
+      class="about wrap"
+    >
+
+      <p
+        style="
+          color:#229cff;
+          font-size:12px;
+          font-weight:700;
+          letter-spacing:.1em;
+          text-transform:uppercase;
+          margin-bottom:10px;
+        "
+      >
+        ABOUT EDUPATH
+      </p>
+
+
+      <h2>
+        Built for every stage of your journey
+      </h2>
+
+
+      <p>
+
+        A curious student in Class 8, a Class 12 board-exam
+        candidate deciding what comes next, a graduate weighing
+        a master's degree, or a parent trying to help —
+        EDUPath is built for everyone.
+
+      </p>
+
+
+      <p>
+
+        Choose your goal, tell us where you are today,
+        and get a clear education roadmap, scholarship
+        opportunities, and college recommendations.
+
+      </p>
+
+    </section>
+
+  </main>
+
+
+
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
+  <footer class="site-footer">
+
+    <div class="wrap footer-inner">
+
+      <p>
+
+        <strong style="color:#229cff;">
+          EDUPath
+        </strong>
+
+        — Your Future, Our Guidance.
+
+        <span class="hide-narrow">
+          &nbsp;|&nbsp;
+        </span>
+
+        Student-built education planning platform.
+
+      </p>
+
     </div>
 
-    <div class="results-grid">
+  </footer>
 
-      <div class="panel roadmap-panel">
-        <h3>Your roadmap from here</h3>
-        <ol id="roadmap-list" class="roadmap-list"></ol>
-      </div>
 
-      <div class="panel">
-        <h3>Scholarships worth applying for</h3>
-        <div id="scholarship-list" class="scholarship-list"></div>
-      </div>
 
-      <div class="panel">
-        <h3>Recommended colleges for this field</h3>
-        <div id="college-list" class="college-list"></div>
-      </div>
+  <!-- =====================================================
+       JAVASCRIPT
+       ===================================================== -->
 
-      <div class="panel" id="nearby-panel" hidden>
-        <h3>Nearest to you</h3>
-        <div id="nearby-list" class="college-list"></div>
-      </div>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
 
-    </div>
-  </section>
-
-  <section class="loading wrap" id="loading" hidden>
-    <div class="spinner" aria-hidden="true"></div>
-    <p>Plotting your route…</p>
-  </section>
-
-  <section id="about" class="about wrap">
-    <h2>Built for every stage of the journey</h2>
-    <p>
-      A curious student in Class 8, a Class 12 board-exam candidate deciding what comes next, a
-      graduate weighing a master's degree, or a parent trying to help — EDUPath is built to be
-      read and used by anyone, no sign-up required. Choose a goal, choose your standard, and get a
-      clear, honest next step.
-    </p>
-  </section>
-
-</main>
-
-<footer class="site-footer">
-  <div class="wrap footer-inner">
-    <p>EDUPath — a student-built project. Roadmap and scholarship data is illustrative; always confirm official details before applying.</p>
-  </div>
-</footer>
-
-<script src="js/config.js"></script>
-<script src="js/app.js"></script>
 </body>
 </html>
