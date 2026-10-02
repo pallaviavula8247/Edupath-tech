@@ -13,31 +13,83 @@
   const goalSelect = document.getElementById("goal");
   const standardSelect = document.getElementById("standard");
   const stateInput = document.getElementById("state");
-
   const form = document.getElementById("planner-form");
   const formError = document.getElementById("form-error");
-
-  const useLocationBtn = document.getElementById("use-location");
-  const locationStatus = document.getElementById("location-status");
-
-  const loadingSection = document.getElementById("loading");
-  const resultsSection = document.getElementById("results");
-
-  let coords = null;
-
+  const loading = document.getElementById("loading");
+  const results = document.getElementById("results");
 
   // =========================================================
-  // STANDARD LABELS
+  // HELPER FUNCTIONS
   // =========================================================
 
-  const STANDARD_LABELS = {
-    CLASS_8: "Class 8",
-    CLASS_10: "Class 10",
-    CLASS_12: "Class 12",
-    UNDERGRAD: "Undergraduate",
-    POSTGRAD: "Postgraduate / Working professional"
-  };
+  function showError(message) {
+    if (formError) {
+      formError.textContent = message;
+      formError.style.display = "block";
+    }
+  }
 
+  function clearError() {
+    if (formError) {
+      formError.textContent = "";
+      formError.style.display = "none";
+    }
+  }
+
+  function setLoading(isLoading) {
+    if (loading) {
+      loading.style.display = isLoading ? "block" : "none";
+    }
+  }
+
+  function escapeHtml(value) {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  async function fetchJson(url, options = {}, timeoutMs = 60000) {
+    const controller = new AbortController();
+
+    const timeout = setTimeout(function () {
+      controller.abort();
+    }, timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          "Server returned HTTP " + response.status
+        );
+      }
+
+      return await response.json();
+
+    } catch (error) {
+
+      if (error.name === "AbortError") {
+        throw new Error(
+          "The EDUPath server took too long to respond. Make sure Django is running."
+        );
+      }
+
+      throw error;
+
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
 
   // =========================================================
   // LOAD GOALS AND STANDARDS
@@ -45,97 +97,42 @@
 
   async function loadOptions() {
 
+    if (!goalSelect || !standardSelect) {
+      return;
+    }
+
+    clearError();
+
+    goalSelect.innerHTML =
+      '<option value="" disabled selected>Loading fields...</option>';
+
+    standardSelect.innerHTML =
+      '<option value="" disabled selected>Loading standards...</option>';
+
     try {
 
-      formError.textContent = "";
-
-      console.log("=================================");
-      console.log("EDUPath API:", API);
-      console.log("Loading goals...");
-      console.log("Loading standards...");
-      console.log("=================================");
-
-
-      // Create controller for timeout
-      const controller = new AbortController();
-
-      const timeout = setTimeout(function () {
-        controller.abort();
-      }, 10000);
-
-
-      // Call both APIs
-      const [goalsRes, standardsRes] = await Promise.all([
-
-        fetch(`${API}/api/goals/`, {
-          method: "GET",
-          signal: controller.signal
-        }),
-
-        fetch(`${API}/api/standards/`, {
-          method: "GET",
-          signal: controller.signal
-        })
-
+      const responses = await Promise.all([
+        fetchJson(`${API}/api/goals/`, {}, 60000),
+        fetchJson(`${API}/api/standards/`, {}, 60000)
       ]);
 
+      const goals = responses[0];
+      const standards = responses[1];
 
-      // Stop timeout
-      clearTimeout(timeout);
-
-
-      console.log("Goals status:", goalsRes.status);
-      console.log("Standards status:", standardsRes.status);
-
-
-      // Check Goals API
-      if (!goalsRes.ok) {
-        throw new Error(
-          `Goals API returned ${goalsRes.status}`
-        );
-      }
-
-
-      // Check Standards API
-      if (!standardsRes.ok) {
-        throw new Error(
-          `Standards API returned ${standardsRes.status}`
-        );
-      }
-
-
-      // Convert response to JSON
-      const goals = await goalsRes.json();
-      const standards = await standardsRes.json();
-
-
-      console.log("Goals received:", goals);
-      console.log("Standards received:", standards);
-
-
-      // =====================================================
-      // CLEAR OLD OPTIONS
-      // =====================================================
+      // -------------------------------------------------------
+      // GOALS
+      // -------------------------------------------------------
 
       goalSelect.innerHTML =
         '<option value="" disabled selected>Choose a field</option>';
 
-      standardSelect.innerHTML =
-        '<option value="" disabled selected>Choose your current standard</option>';
-
-
-      // =====================================================
-      // LOAD GOALS
-      // =====================================================
-
-      if (Array.isArray(goals) && goals.length > 0) {
+      if (Array.isArray(goals)) {
 
         goals.forEach(function (g) {
 
           const option = document.createElement("option");
 
           option.value = g.category;
-
           option.textContent =
             `${g.icon || ""} ${g.title}`;
 
@@ -143,847 +140,591 @@
 
         });
 
-      } else {
-
-        console.warn("No goals returned from API.");
-
       }
 
+      // -------------------------------------------------------
+      // STANDARDS
+      // -------------------------------------------------------
 
-      // =====================================================
-      // LOAD STANDARDS
-      // =====================================================
+      standardSelect.innerHTML =
+        '<option value="" disabled selected>Choose your current standard</option>';
 
-      if (Array.isArray(standards) && standards.length > 0) {
+      if (Array.isArray(standards)) {
 
         standards.forEach(function (s) {
 
           const option = document.createElement("option");
 
           option.value = s.code;
-
           option.textContent = s.label;
 
           standardSelect.appendChild(option);
 
         });
 
-      } else {
-
-        console.warn("No standards returned from API.");
-
       }
 
+    } catch (error) {
 
-      console.log("Dropdowns loaded successfully.");
+      console.error("Failed to load options:", error);
 
-    }
-
-
-    catch (err) {
-
-      console.error(
-        "Dropdown loading error:",
-        err
+      showError(
+        error.message ||
+        "Unable to connect to the EDUPath server."
       );
 
+      goalSelect.innerHTML =
+        '<option value="" disabled selected>Choose a field</option>';
 
-      if (err.name === "AbortError") {
-
-        formError.textContent =
-          "The EDUPath server took too long to respond. Make sure Django is running.";
-
-      } else {
-
-        formError.textContent =
-          `Couldn't load education options. ${err.message}`;
-
-      }
-
+      standardSelect.innerHTML =
+        '<option value="" disabled selected>Choose your current standard</option>';
     }
-
   }
 
-
   // =========================================================
-  // USE MY LOCATION
+  // LOCATION
   // =========================================================
 
-  if (useLocationBtn) {
+  function getUserLocation() {
 
-    useLocationBtn.addEventListener("click", function () {
+    return new Promise(function (resolve) {
 
-      if (!("geolocation" in navigator)) {
-
-        locationStatus.textContent =
-          "Location isn't available in this browser.";
-
+      if (!navigator.geolocation) {
+        resolve(null);
         return;
-
       }
-
-
-      locationStatus.textContent =
-        "Locating...";
-
 
       navigator.geolocation.getCurrentPosition(
-
         function (position) {
 
-          coords = {
+          resolve({
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          };
-
-
-          locationStatus.textContent =
-            "Location added — nearby colleges will be included.";
-
-          console.log("Location:", coords);
+          });
 
         },
+        function () {
 
-
-        function (error) {
-
-          coords = null;
-
-
-          console.error(
-            "Location error:",
-            error
-          );
-
-
-          locationStatus.textContent =
-            "Couldn't get your location. You can still search without it.";
+          resolve(null);
 
         },
-
-
         {
-          enableHighAccuracy: true,
-          timeout: 8000,
-          maximumAge: 0
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 300000
         }
-
       );
 
     });
 
   }
-
-
-  // =========================================================
-  // FORM SUBMISSION
-  // =========================================================
-
-  if (form) {
-
-    form.addEventListener("submit", async function (e) {
-
-      e.preventDefault();
-
-
-      // Clear previous error
-      formError.textContent = "";
-
-
-      // Get values
-      const goal = goalSelect.value;
-      const standard = standardSelect.value;
-      const state = stateInput.value.trim();
-
-
-      // =====================================================
-      // VALIDATION
-      // =====================================================
-
-      if (!goal) {
-
-        formError.textContent =
-          "Please choose a field.";
-
-        goalSelect.focus();
-
-        return;
-
-      }
-
-
-      if (!standard) {
-
-        formError.textContent =
-          "Please choose your current standard.";
-
-        standardSelect.focus();
-
-        return;
-
-      }
-
-
-      // =====================================================
-      // CREATE REQUEST DATA
-      // =====================================================
-
-      const payload = {
-
-        goal: goal,
-
-        standard: standard,
-
-        state: state
-
-      };
-
-
-      // Add location if available
-      if (coords) {
-
-        payload.lat = coords.lat;
-
-        payload.lng = coords.lng;
-
-      }
-
-
-      console.log("Sending recommendation request:");
-      console.log(payload);
-
-
-      // =====================================================
-      // SHOW LOADING
-      // =====================================================
-
-      resultsSection.hidden = true;
-
-      loadingSection.hidden = false;
-
-
-      try {
-
-        // ---------------------------------------------------
-        // 30 SECOND TIMEOUT
-        // ---------------------------------------------------
-
-        const controller = new AbortController();
-
-        const timeout = setTimeout(function () {
-
-          controller.abort();
-
-        }, 30000);
-
-
-        // ---------------------------------------------------
-        // CALL RECOMMEND API
-        // ---------------------------------------------------
-
-        const response = await fetch(
-          `${API}/api/recommend/`,
-          {
-
-            method: "POST",
-
-            headers: {
-              "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify(payload),
-
-            signal: controller.signal
-
-          }
-        );
-
-
-        // Stop timeout
-        clearTimeout(timeout);
-
-
-        console.log(
-          "Recommendation API status:",
-          response.status
-        );
-
-
-        // ---------------------------------------------------
-        // HANDLE ERROR
-        // ---------------------------------------------------
-
-        if (!response.ok) {
-
-          let errorMessage =
-            `Server returned ${response.status}.`;
-
-          try {
-
-            const errorData =
-              await response.json();
-
-            if (errorData.error) {
-
-              errorMessage =
-                errorData.error;
-
-            }
-
-          } catch (jsonError) {
-
-            console.warn(
-              "Could not read error response.",
-              jsonError
-            );
-
-          }
-
-
-          throw new Error(errorMessage);
-
-        }
-
-
-        // ---------------------------------------------------
-        // READ RESPONSE
-        // ---------------------------------------------------
-
-        const data =
-          await response.json();
-
-
-        console.log(
-          "Recommendation data:",
-          data
-        );
-
-
-        // ---------------------------------------------------
-        // DISPLAY RESULTS
-        // ---------------------------------------------------
-
-        renderResults(data);
-
-      }
-
-
-      catch (err) {
-
-        console.error(
-          "Recommendation error:",
-          err
-        );
-
-
-        if (err.name === "AbortError") {
-
-          formError.textContent =
-            "The recommendation server took too long to respond. Please make sure Django is running correctly and try again.";
-
-        } else {
-
-          formError.textContent =
-            err.message ||
-            "Something went wrong. Please try again.";
-
-        }
-
-      }
-
-
-      finally {
-
-        // Hide loading screen
-        loadingSection.hidden = true;
-
-      }
-
-    });
-
-  }
-
-
-  // =========================================================
-  // RENDER ALL RESULTS
-  // =========================================================
-
-  function renderResults(data) {
-
-    console.log(
-      "Rendering results:",
-      data
-    );
-
-
-    // -------------------------------------------------------
-    // GOAL
-    // -------------------------------------------------------
-
-    const resultsIcon =
-      document.getElementById("results-icon");
-
-    const resultsTitle =
-      document.getElementById("results-title");
-
-    const resultsSub =
-      document.getElementById("results-sub");
-
-
-    if (resultsIcon) {
-
-      resultsIcon.textContent =
-        data.goal?.icon || "🎯";
-
-    }
-
-
-    if (resultsTitle) {
-
-      resultsTitle.textContent =
-        `Your path to ${data.goal?.title || "your goal"}`;
-
-    }
-
-
-    if (resultsSub) {
-
-      resultsSub.textContent =
-        `Starting point: ${
-          STANDARD_LABELS[data.standard] ||
-          data.standard ||
-          ""
-        }`;
-
-    }
-
-
-    // -------------------------------------------------------
-    // ROADMAP
-    // -------------------------------------------------------
-
-    renderRoadmap(
-      data.roadmap || []
-    );
-
-
-    // -------------------------------------------------------
-    // SCHOLARSHIPS
-    // -------------------------------------------------------
-
-    renderScholarships(
-      data.scholarships || []
-    );
-
-
-    // -------------------------------------------------------
-    // COLLEGES
-    // -------------------------------------------------------
-
-    renderColleges(
-      "college-list",
-      data.colleges || [],
-      false
-    );
-
-
-    // -------------------------------------------------------
-    // NEARBY COLLEGES
-    // -------------------------------------------------------
-
-    const nearbyPanel =
-      document.getElementById("nearby-panel");
-
-
-    if (
-      data.nearby_colleges &&
-      data.nearby_colleges.length > 0
-    ) {
-
-      nearbyPanel.hidden = false;
-
-
-      renderColleges(
-        "nearby-list",
-        data.nearby_colleges,
-        true
-      );
-
-    } else {
-
-      nearbyPanel.hidden = true;
-
-    }
-
-
-    // -------------------------------------------------------
-    // SHOW RESULTS
-    // -------------------------------------------------------
-
-    resultsSection.hidden = false;
-
-
-    // Scroll to results
-    resultsSection.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-
-  }
-
 
   // =========================================================
   // RENDER ROADMAP
   // =========================================================
 
-  function renderRoadmap(steps) {
+  function renderRoadmap(roadmap) {
 
-    const list =
-      document.getElementById("roadmap-list");
-
-
-    if (!list) return;
-
-
-    list.innerHTML = "";
-
-
-    // No steps
-    if (!steps.length) {
-
-      list.innerHTML =
-        '<p class="empty-note">No roadmap steps found for this combination yet.</p>';
-
-      return;
-
+    if (!roadmap) {
+      return "";
     }
 
+    let items = [];
 
-    // Create roadmap steps
-    steps.forEach(function (step) {
+    if (Array.isArray(roadmap)) {
+      items = roadmap;
+    } else if (Array.isArray(roadmap.steps)) {
+      items = roadmap.steps;
+    } else if (Array.isArray(roadmap.roadmap)) {
+      items = roadmap.roadmap;
+    }
 
-      const li =
-        document.createElement("li");
-
-
-      li.innerHTML = `
-
-        <span class="step-standard">
-          ${
-            STANDARD_LABELS[step.standard] ||
-            step.standard ||
-            ""
-          }
-        </span>
-
-        <p class="step-title">
-          ${escapeHTML(step.title)}
-        </p>
-
-        <p class="step-desc">
-          ${escapeHTML(step.description)}
-        </p>
-
-        ${
-          step.duration
-            ? `
-              <p class="step-duration">
-                Typical duration:
-                ${escapeHTML(step.duration)}
-              </p>
-            `
-            : ""
-        }
-
-      `;
-
-
-      list.appendChild(li);
-
-    });
-
-  }
-
-
-  // =========================================================
-  // RENDER SCHOLARSHIPS
-  // =========================================================
-
-  function renderScholarships(items) {
-
-    const wrap =
-      document.getElementById("scholarship-list");
-
-
-    if (!wrap) return;
-
-
-    wrap.innerHTML = "";
-
-
-    // No scholarships
     if (!items.length) {
-
-      wrap.innerHTML =
-        '<p class="empty-note">No matching scholarships found — try a different standard.</p>';
-
-      return;
-
+      return "";
     }
 
+    return `
+      <section class="result-section roadmap-section">
 
-    // Create scholarship cards
-    items.forEach(function (scholarship) {
+        <h2>Career Roadmap</h2>
 
-      const div =
-        document.createElement("div");
+        <div class="roadmap-list">
 
+          ${items.map(function (item, index) {
 
-      div.className =
-        "card-item";
+            const title =
+              item.title ||
+              item.name ||
+              item.step ||
+              `Step ${index + 1}`;
 
+            const description =
+              item.description ||
+              item.summary ||
+              item.details ||
+              "";
 
-      div.innerHTML = `
+            return `
+              <div class="roadmap-item">
 
-        <h4>
-          ${escapeHTML(scholarship.name)}
-        </h4>
+                <div class="roadmap-number">
+                  ${index + 1}
+                </div>
 
-        ${
-          scholarship.description
-            ? `
-              <p>
-                ${escapeHTML(
-                  scholarship.description
-                )}
-              </p>
-            `
-            : ""
-        }
+                <div class="roadmap-content">
 
-        <div class="meta">
+                  <h3>
+                    ${escapeHtml(title)}
+                  </h3>
 
-          ${
-            scholarship.provider
-              ? `
-                <span>
-                  ${escapeHTML(
-                    scholarship.provider
-                  )}
-                </span>
-              `
-              : ""
-          }
+                  ${
+                    description
+                      ? `<p>${escapeHtml(description)}</p>`
+                      : ""
+                  }
 
-          ${
-            scholarship.amount
-              ? `
-                <span class="badge moss">
-                  ${escapeHTML(
-                    scholarship.amount
-                  )}
-                </span>
-              `
-              : ""
-          }
+                </div>
+
+              </div>
+            `;
+
+          }).join("")}
 
         </div>
 
-        ${
-          scholarship.official_link
-            ? `
-              <p>
-                <a
-                  href="${escapeAttr(
-                    scholarship.official_link
-                  )}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Official page ↗
-                </a>
-              </p>
-            `
-            : ""
-        }
-
-      `;
-
-
-      wrap.appendChild(div);
-
-    });
+      </section>
+    `;
 
   }
-
 
   // =========================================================
   // RENDER COLLEGES
   // =========================================================
 
-  function renderColleges(
-    containerId,
-    items,
-    showDistance
-  ) {
+  function renderColleges(colleges) {
 
-    const wrap =
-      document.getElementById(containerId);
-
-
-    if (!wrap) return;
-
-
-    wrap.innerHTML = "";
-
-
-    // No colleges
-    if (!items.length) {
-
-      wrap.innerHTML =
-        '<p class="empty-note">No colleges found for this field yet.</p>';
-
-      return;
-
+    if (!Array.isArray(colleges) || !colleges.length) {
+      return "";
     }
 
+    return `
+      <section class="result-section colleges-section">
 
-    // Create college cards
-    items.forEach(function (college) {
+        <h2>Recommended Colleges</h2>
 
-      const div =
-        document.createElement("div");
+        <div class="college-grid">
 
+          ${colleges.map(function (college) {
 
-      div.className =
-        "card-item";
+            const name =
+              college.name ||
+              college.college_name ||
+              "College";
 
+            const location =
+              college.location ||
+              college.city ||
+              college.address ||
+              "";
 
-      div.innerHTML = `
+            const state =
+              college.state ||
+              "";
 
-        <h4>
-          ${escapeHTML(college.name)}
-        </h4>
+            const website =
+              college.website ||
+              college.url ||
+              "";
 
-        <p>
-          ${escapeHTML(college.city || "")},
-          ${escapeHTML(college.state || "")}
-        </p>
+            return `
+              <article class="college-card">
 
-        <div class="meta">
+                <h3>
+                  ${escapeHtml(name)}
+                </h3>
 
-          ${
-            college.college_type
-              ? `
-                <span class="badge clay">
-                  ${escapeHTML(
-                    college.college_type
-                  )}
-                </span>
-              `
-              : ""
-          }
+                ${
+                  location
+                    ? `<p>${escapeHtml(location)}</p>`
+                    : ""
+                }
 
-          ${
-            college.rating != null
-              ? `
-                <span>
-                  ★ ${college.rating}
-                </span>
-              `
-              : ""
-          }
+                ${
+                  state
+                    ? `<p>${escapeHtml(state)}</p>`
+                    : ""
+                }
 
-          ${
-            showDistance &&
-            college.distance_km != null
-              ? `
-                <span>
-                  ${college.distance_km} km away
-                </span>
-              `
-              : ""
-          }
+                ${
+                  website
+                    ? `
+                      <a
+                        href="${escapeHtml(website)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Visit Website
+                      </a>
+                    `
+                    : ""
+                }
+
+              </article>
+            `;
+
+          }).join("")}
 
         </div>
 
-        ${
-          college.website
-            ? `
-              <p>
-                <a
-                  href="${escapeAttr(
-                    college.website
-                  )}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Visit website ↗
-                </a>
-              </p>
-            `
-            : ""
-        }
+      </section>
+    `;
 
+  }
+
+  // =========================================================
+  // RENDER SCHOLARSHIPS
+  // =========================================================
+
+  function renderScholarships(scholarships) {
+
+    if (!Array.isArray(scholarships) || !scholarships.length) {
+      return "";
+    }
+
+    return `
+      <section class="result-section scholarships-section">
+
+        <h2>Scholarships</h2>
+
+        <div class="scholarship-grid">
+
+          ${scholarships.map(function (scholarship) {
+
+            const name =
+              scholarship.name ||
+              scholarship.title ||
+              "Scholarship";
+
+            const description =
+              scholarship.description ||
+              scholarship.summary ||
+              "";
+
+            const eligibility =
+              scholarship.eligibility ||
+              "";
+
+            const amount =
+              scholarship.amount ||
+              scholarship.value ||
+              "";
+
+            const website =
+              scholarship.website ||
+              scholarship.url ||
+              "";
+
+            return `
+              <article class="scholarship-card">
+
+                <h3>
+                  ${escapeHtml(name)}
+                </h3>
+
+                ${
+                  description
+                    ? `<p>${escapeHtml(description)}</p>`
+                    : ""
+                }
+
+                ${
+                  eligibility
+                    ? `
+                      <p>
+                        <strong>Eligibility:</strong>
+                        ${escapeHtml(eligibility)}
+                      </p>
+                    `
+                    : ""
+                }
+
+                ${
+                  amount
+                    ? `
+                      <p>
+                        <strong>Amount:</strong>
+                        ${escapeHtml(amount)}
+                      </p>
+                    `
+                    : ""
+                }
+
+                ${
+                  website
+                    ? `
+                      <a
+                        href="${escapeHtml(website)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Learn More
+                      </a>
+                    `
+                    : ""
+                }
+
+              </article>
+            `;
+
+          }).join("")}
+
+        </div>
+
+      </section>
+    `;
+
+  }
+
+  // =========================================================
+  // RENDER GENERAL RESULTS
+  // =========================================================
+
+  function renderResults(data) {
+
+    if (!results) {
+      return;
+    }
+
+    const roadmap =
+      data.roadmap ||
+      data.roadmap_steps ||
+      data.steps ||
+      [];
+
+    const colleges =
+      data.colleges ||
+      data.recommended_colleges ||
+      [];
+
+    const scholarships =
+      data.scholarships ||
+      data.recommended_scholarships ||
+      [];
+
+    let html = "";
+
+    html += renderRoadmap(roadmap);
+
+    html += renderColleges(colleges);
+
+    html += renderScholarships(scholarships);
+
+    // -------------------------------------------------------
+    // FALLBACK MESSAGE
+    // -------------------------------------------------------
+
+    if (!html) {
+
+      html = `
+        <section class="result-section">
+
+          <h2>Your EDUPath Results</h2>
+
+          <p>
+            Your recommendations were generated successfully.
+          </p>
+
+        </section>
       `;
 
+    }
 
-      wrap.appendChild(div);
+    results.innerHTML = html;
 
-    });
+    results.style.display = "block";
 
-  }
-
-
-  // =========================================================
-  // HTML SECURITY
-  // =========================================================
-
-  function escapeHTML(value) {
-
-    const div =
-      document.createElement("div");
-
-
-    div.textContent =
-      value == null
-        ? ""
-        : String(value);
-
-
-    return div.innerHTML;
+    try {
+      results.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    } catch (error) {
+      results.scrollIntoView();
+    }
 
   }
 
-
   // =========================================================
-  // ATTRIBUTE SECURITY
+  // SUBMIT RECOMMENDATION REQUEST
   // =========================================================
 
-  function escapeAttr(value) {
+  async function generateRecommendations(event) {
 
-    return escapeHTML(value)
-      .replace(/"/g, "&quot;");
+    event.preventDefault();
+
+    clearError();
+
+    if (!goalSelect || !standardSelect) {
+      return;
+    }
+
+    const goal = goalSelect.value;
+    const standard = standardSelect.value;
+    const state =
+      stateInput && stateInput.value
+        ? stateInput.value.trim()
+        : "";
+
+    // -------------------------------------------------------
+    // VALIDATION
+    // -------------------------------------------------------
+
+    if (!goal) {
+
+      showError("Please choose a career field.");
+
+      goalSelect.focus();
+
+      return;
+    }
+
+    if (!standard) {
+
+      showError(
+        "Please choose your current standard."
+      );
+
+      standardSelect.focus();
+
+      return;
+    }
+
+    if (!state) {
+
+      showError("Please enter your state.");
+
+      if (stateInput) {
+        stateInput.focus();
+      }
+
+      return;
+    }
+
+    // -------------------------------------------------------
+    // LOADING
+    // -------------------------------------------------------
+
+    setLoading(true);
+
+    if (results) {
+      results.style.display = "none";
+      results.innerHTML = "";
+    }
+
+    try {
+
+      // -----------------------------------------------------
+      // GET OPTIONAL USER LOCATION
+      // -----------------------------------------------------
+
+      const location =
+        await getUserLocation();
+
+      // -----------------------------------------------------
+      // BUILD REQUEST BODY
+      // -----------------------------------------------------
+
+      const payload = {
+        goal: goal,
+        standard: standard,
+        state: state
+      };
+
+      if (location) {
+
+        payload.lat = location.lat;
+        payload.lng = location.lng;
+
+      }
+
+      console.log(
+        "Sending recommendation request:",
+        payload
+      );
+
+      // -----------------------------------------------------
+      // CALL DJANGO API
+      // -----------------------------------------------------
+
+      const data = await fetchJson(
+        `${API}/api/recommend/`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify(payload)
+        },
+        30000
+      );
+
+      console.log(
+        "Recommendation response:",
+        data
+      );
+
+      // -----------------------------------------------------
+      // DISPLAY RESULTS
+      // -----------------------------------------------------
+
+      renderResults(data);
+
+    } catch (error) {
+
+      console.error(
+        "Recommendation request failed:",
+        error
+      );
+
+      showError(
+        error.message ||
+        "Unable to generate recommendations. Please try again."
+      );
+
+    } finally {
+
+      setLoading(false);
+
+    }
 
   }
 
+  // =========================================================
+  // FORM EVENT
+  // =========================================================
+
+  if (form) {
+
+    form.addEventListener(
+      "submit",
+      generateRecommendations
+    );
+
+  }
 
   // =========================================================
-  // START APPLICATION
+  // INITIALIZE APPLICATION
   // =========================================================
 
-  console.log(
-    "EDUPath frontend starting..."
+  document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+      loadOptions();
+
+    }
   );
-
-  console.log(
-    "Backend API:",
-    API
-  );
-
-
-  // Load goals and standards
-  loadOptions();
-
 
 })();
